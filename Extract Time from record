@@ -1,0 +1,33 @@
+/*
+* Name         -CaseExtractCreatedHour
+* Developer    -
+* API Version  -51.0
+* Description  -This is created for extract created hour from ticket and updated Into custom field createdTime__c
+*/
+
+public class CaseExtractCreatedHour {
+
+public Static void cot(String Ids)
+{ 
+   String extractedDT;
+   Double ct;
+     List<case>lstUpdate =new List<case>();
+     List<Case>getcase=[select Ownerid,recordTypeId,createdById,CreatedDate,CreatedTime__c from case where id=:ids];
+    
+    for(case cs:getcase)
+    {
+       extractedDT=cs.CreatedDate.hour()+'.'+cs.CreatedDate.minute();
+       cs.CreatedTime__c=double.valueOf(extractedDT);      
+       if(cs2.CreatedTime__c > 7.30 && cs2.CreatedTime__c <=17.00 && cs2.createdById=='005d000000187Cw'){
+           cs2.ownerid='00G0W000003z9NW'; //servicedesk
+           }
+           else{
+           cs2.ownerid='00Gd0000001P4v1'; // target queue  
+           }
+    } 
+       lstUpdate.add(cs);
+        
+}
+ 
+    update lstUpdate;  // update ticket(s) with CreatedTime.
+}
