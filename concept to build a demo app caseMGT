@@ -1,0 +1,177 @@
+============================[case flags app]=========================================
+
+External and internal (other departments within the organization) SLA 
+•    Business hours and 24/7 time counting 
+•    Different customers profiles like Gold, Silver with different SLA
+•    Variety of measures on the case:
+o    1st response
+o    Workaround
+o    Communication 
+o    Resolution 
+o    Support Time and Weight dependencies
+
+Custom Object: 
+
+Case Flag History Tracking. 
+> Track Case Flag Clear.
+> Track Case Flag Set. 
+> Track Ownership Changes.
+> Track Status Change.
+> Business Hours Elapsed
+> Hours Elapsed.
+> Case Status 
+> Owner Name
+> Start DT
+> End DT
+> Flag ( Color )
+
+
+Sections on Tx layout
+Case Flag Timings
+- Case Flag Age 1 hour : DT
+- Case Flag Age 2 hour : DT
+- Case Flag Age 4 hour : DT
+- Case Flag Age 8 hour : DT
+- Case Flag Age 12 hour : DT
+- Initial Response. 
+
+Case Flags Analytics
+- Initial Response Hours 
+- Hours with IC
+- Hours with Customer 
+- Initial response business hours. 
+- Business hours with IC. 
+- Businesss Hours with Support. 
+
+ 
+Case Flags Future Dates / Times 
+Escalation Time 1
+Escalation Time 2
+Escalation Time 3
+Escalation Time 4
+
+
+integer Days = Integer.valueOf((CFHT.End_Time__c.getTime() - CFHT.Start_Time__c.getTime())/(1000*60*60*24));
+
+
+ ============================[Email service app trigger / class]=======================================
+ 
+ Global class ProcessEmailMessage implements Messaging.inboundEmailHandler{
+
+    Global Messaging.InboundEmailResult handleInboundEmail(Messaging.InboundEmail email, Messaging.InboundEnvelope env ) {
+    
+        // [1] Create an inboundEmailResult object for returning the result of the email service.
+        Messaging.InboundEmailResult result = new Messaging.InboundEmailResult();
+         
+        // [2] Create contact and case lists to hold all the updated records.
+        LIST<Contact> lc  = new LIST <contact>(); // for searching contact
+        LIST<Contact> Ec  = new LIST <contact>(); // for new contact 
+        LIST<case>    Nc  = new LIST <case>();    // new case
+        LIST<Email2CasePrefs__c> allInboundConfigs = Email2CasePrefs__c.getAll().Values();
+        
+
+        Integer lcSize = 0;
+        String ExistingContactId ='';
+        String NewContactId ='';
+        String IdentifiedIBConfigId = '';
+        String IdentifiedIBConfigAccountName = '';
+        String IdentifiedIBConfigPriority = '';
+        String IdentifiedIBConfigOrigin = '';
+        String IdentifiedIBConfigRecType = '';
+        String DescriptionTemplate = '';
+        
+        //Construct the template for case description
+        
+        DescriptionTemplate = 'From: ' + email.fromAddress + '\n' + 
+                              'To:' + env.toAddress + '\n\n' +  email.plainTextBody;   
+
+        
+        
+        // [3] Iterate over custom settings Inbound Configuration records and find the To Email record to map values for case creation.
+        for (Email2CasePrefs__c huntConfig: [SELECT Id,To_Address__c,RecordType_Name__c,Account_Name__c,Priority__c,Origin__c 
+                                            FROM Email2CasePrefs__c
+                                            WHERE To_Address__c=: 	s AND Active__c = TRUE LIMIT 1]){
+            
+            IdentifiedIBConfigId            =    huntConfig.id;
+            IdentifiedIBConfigAccountName   =    huntConfig.Account_Name__c; 
+            IdentifiedIBConfigPriority      =    huntConfig.Origin__c;
+            IdentifiedIBConfigOrigin        =    huntConfig.Priority__c;
+            IdentifiedIBConfigRecType       =    huntConfig.RecordType_Name__c;     
+        }
+      
+        // [4] Create contact and case lists to hold all the updated records.
+        
+           try {      // Look up all contacts with a matching email address fields.             
+               
+            for (Contact c : [SELECT Id FROM Contact
+                             WHERE (Email = :email.fromAddress OR Alternate_EMail__c    =  :email.fromAddress) 
+                             LIMIT 1]) 
+                {  
+                lc.add(c);                 
+                lcSize = lc.size();
+                } // Add all the matching contacts into the list. 
+            
+            
+            }
+            
+        catch (System.QueryException e) { System.debug('Contact Query Issue: ' + e); }  
+        
+       // [5] Create a case with attributes from Email Message and identified contact if any
+        
+        
+        Case newcase = new case();
+        newcase.Subject          =    email.subject;
+        newcase.description      =    DescriptionTemplate;
+        newcase.suppliedemail    =    email.fromAddress;
+        newcase.Case_CC_Email__c =    email.fromAddress;
+        newcase.Priority         =    IdentifiedIBConfigPriority;
+        newcase.Origin           =    IdentifiedIBConfigOrigin; 
+        
+        // If contact is found assign the ID else create a fresh contact and assign to the ticket.
+        if (lcSize > 0) { 
+        newcase.contactid       =    lc.get(0).id;
+        } else {
+        contact newcontact = new contact();
+        newcontact.Firstname     = '';
+        newcontact.Lastname      = email.FromName;
+        newcontact.email         = email.fromAddress;
+        newcontact.Accountid     = '0012v00003AkBIX';  // dummy account (Placeholder Account).
+        Ec.add(newcontact);
+        insert Ec; 
+        newcase.contactid       =    Ec.get(0).id;
+        }
+        insert newcase;
+        
+        /*
+        // [6.1] Save attachments, if any
+            for (Messaging.Inboundemail.TextAttachment tAttachment : email.textAttachments) {
+            Attachment attachment = new Attachment();
+
+            attachment.Name = tAttachment.fileName;
+            attachment.Body = Blob.vanlueOf(tAttachment.body);
+            attachment.ParentId = newcase.Id;
+            insert attachment;
+            }
+
+          //  [6.2] Save any Binary Attachment
+            for (Messaging.Inboundemail.BinaryAttachment bAttachment : email.binaryAttachments) {
+            Attachment attachment = new Attachment();
+
+            attachment.Name = bAttachment.fileName;
+            attachment.Body = bAttachment.body;
+            attachment.ParentId = newcase.Id;
+            insert attachment;
+            }
+        */
+          
+    //    catch (System.QueryException e) { System.debug('Case Creation action Issue: ' + e); } 
+        
+        // Return True and exit.
+        // True confirms program is complete and no emails 
+        // should be sent to the sender of the unsubscribe request. 
+        
+        result.success = true;
+        return result;
+
+    }   
+}
