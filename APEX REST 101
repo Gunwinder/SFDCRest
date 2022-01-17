@@ -1,0 +1,38 @@
+@RESTResource(urlMapping='/CreateLead/')
+global class RestCreateLead {
+    @HTTPPost
+    global static string createLeadRecord(){
+        string fname,lname,company, fieldName,fieldValue ;
+        RestRequest req =  RestContext.request;  // new keyword not needed, request(), no parantheses needed, compiler doesn not understand.
+        RestResponse res = RestContext.response; // new keyword not needed, response(), no parantheses needed, compiler doesn not understand.
+        
+        string arr = req.requestBody.toString();
+        system.debug('Body of REST' +arr);
+      //  return 'test passed';
+      //  
+      string jsonBody = req.requestBody.toString();
+      JSONParser parser = JSON.CreateParser(jsonBody);
+        
+        while (parser.nextToken()!=null){
+            if(parser.getCurrentToken()!= JSONToken.END_OBJECT){
+                fieldName = parser.getCurrentName();
+                fieldValue = parser.getText();
+                
+                if (fieldName == 'FirstName'){
+                    fname= fieldValue;
+                }
+                else if (fieldName == 'LastName'){
+                    lname= fieldValue;
+                }
+                else if (fieldName == 'Company'){
+                    company= fieldValue;
+                }
+            }
+        }
+        // create a lead record after the loop ends.
+        lead l = new lead (firstname = fname, lastname = lname, company=company);
+        insert l;
+        return l.id;
+    }
+
+}
