@@ -1,0 +1,53 @@
+// https://www.linkedin.com/pulse/why-invocable-methods-could-spell-end-apex-triggers-amnon-kruvi
+
+@InvocableMethod(Label='Count Open Cases' Description='Returns a count of open cases for the provided contact')
+
+public static List<Decimal> countOpenCases(List<Id> contactId) {
+
+   //Query the amount of open cases for all contacts
+
+   Map<Id, Decimal> mapResults = new Map<Id, Decimal>();
+
+   for (AggregateResult ar : [SELECT ContactId con, COUNT(Id) cnt
+
+                         FROM Case
+
+                         WHERE ContactId IN :contactId AND IsClosed = false
+
+                        GROUP BY ContactId]) {
+
+      //Store the amount of open cases for each contact in a map
+
+      mapResults.put((Id)ar.get('con'), (Decimal)ar.get('cnt'));
+
+   }
+
+   //Sort the amount of open cases into a list with the same order as the contactId list
+
+   List<Decimal> res = new List<Decimal>();
+
+   List<Contact> contactsToUpdate = new List<Contact>();
+
+   for (Id conId : contactId) {
+
+      Decimal val = mapResults.get(conId);
+
+      if (val == null) {
+
+         val = 0.0;
+
+      }
+
+      res.add(val);
+
+      contactsToUpdate.add(new Contact(Id = conId, Open_Cases__c = val));
+
+   }
+ 
+   //Store the amount of open cases on the contact records
+
+   update contactsToUpdate;   
+
+   return res;
+
+}
