@@ -1,0 +1,637 @@
+public class AllOperationClassSimple {
+  ////////////////////////////////Create Contact ////////////////////////////
+   public Static List<sObject> createNewContact(SimplifyCaseMgt.CaseWrapper[] Records)
+    { string status='';
+     
+     list<Exception__c> exceptList=new List<Exception__c>();
+        List<Contact> lstContact= new List<Contact>();
+         for(SimplifyCaseMgt.CaseWrapper caseWrap: records )
+        {
+           Contact newContact=new Contact();
+            
+            if(String.IsNotBlank(caseWrap.filter.secondary.ContactId))
+                {
+                    newContact.Id = caseWrap.filter.secondary.ContactId;
+                }
+            
+            newContact.AccountId=caseWrap.filter.primary.AccountId;
+           newContact.lastname=caseWrap.filter.secondary.lastName;
+            newContact.email=caseWrap.filter.secondary.email;
+            newContact.FirstName=caseWrap.filter.secondary.firstName;
+            newContact.Phone=caseWrap.filter.secondary.Phone;
+            newContact.Student_ID_Number__c=caseWrap.filter.secondary.StudentId;
+            
+            
+            
+              if(String.IsNotBlank(caseWrap.filter.secondary.OwnerId))
+                {
+                    newContact.OwnerId = caseWrap.filter.secondary.OwnerId;
+                }
+               
+               lstContact.add(newContact);
+                System.debug('caseList---'+lstContact);
+        }
+        try{
+           
+            upsert lstContact;
+       
+            for(sObject Con :lstContact)
+            {
+                Exception__c excpt=new Exception__c();
+                excpt.Record_ID__c=Con.id;
+                excpt.Object__c='Contact';
+                excpt.Automation_Tool__c='Apex';
+                             
+                exceptList.add(excpt);
+            }
+            
+ 
+          
+         return exceptList;
+        }
+        catch(Exception e){
+                 Exception__c excpt=new Exception__c();
+                excpt.Exception_details__c=e.getMessage(); 
+                excpt.Object__c='Contact';
+                excpt.Automation_Tool__c='Apex';
+                exceptList.add(excpt);
+          
+            return exceptList;
+        }
+      
+
+    }
+    
+////////////////////////////////Create Ticket/////////////////////////////
+    
+    public static List<sObject> createTicket(SimplifyCaseMgt.CaseWrapper[] Records)
+    {
+         String Selectcolumn='Select ';
+            String s2,s3,query;
+        Case CaseId;
+        List<String> lstField=new List<string>();
+        List<Case> exceptList = new List<Case>();
+        List<sObject> newcaseList= new List<sObject>();  
+        for(SimplifyCaseMgt.CaseWrapper caseWrap: records )
+        {
+        
+            
+if(caseWrap.filter.expField.AccountId!=null){lstField.add('AccountId'); }     
+if(caseWrap.filter.expField.RecordTypeId!=null) {lstField.add('RecordTypeId'); }
+if(caseWrap.filter.expField.Id!=null){ lstField.add('Id');  }
+if(caseWrap.filter.expField.CaseNumber!=null){lstField.add('CaseNumber'); }         
+if(caseWrap.filter.expField.Subject!=null){  lstField.add('Subject'); }
+if(caseWrap.filter.expField.CreatedDate!=null) {  lstField.add('CreatedDate');  }
+if(caseWrap.filter.expField.Status!=null) {  lstField.add('Status');  }
+if(caseWrap.filter.expField.ClosedDate!=null) {  lstField.add('ClosedDate');  }
+if(caseWrap.filter.expField.Internal_Notes!=null) {  lstField.add('Internal_Notes__c');  }
+if(caseWrap.filter.expField.Description!=null) {  lstField.add('Description');  }
+if(caseWrap.filter.expField.Priority!=null) {  lstField.add('Priority');  }
+if(caseWrap.filter.expField.Case_Source!=null) {  lstField.add('Case_Source__c');  }
+if(caseWrap.filter.expField.Ticket_Type2!=null) {  lstField.add('Ticket_Type2__c');  }
+if(caseWrap.filter.expField.Ticket_Type!=null) {  lstField.add('Ticket_Type__c');  }
+if(caseWrap.filter.expField.OldCaseOwnerR!=null) {  lstField.add('OldCaseOwnerR__c');  }
+if(caseWrap.filter.expField.Service_Type!=null) {  lstField.add('Service_Type__c');  }
+if(caseWrap.filter.expField.Ticket_Category!=null) {  lstField.add('Ticket_Category__c');  }
+if(caseWrap.filter.expField.Service_Category!=null) {  lstField.add('Service_Category__c');  }
+if(caseWrap.filter.expField.Ticket_Category2!=null) {  lstField.add('Ticket_Category2__c');  }
+if(caseWrap.filter.expField.Ticket_Item!=null) {  lstField.add('Ticket_Item__c');  }
+if(caseWrap.filter.expField.Case_CC_Email!=null) {  lstField.add('Case_CC_Email__c');  }
+if(caseWrap.filter.expField.Agent_Adviser!=null) {  lstField.add('Agent_Adviser__c');  }
+if(caseWrap.filter.expField.Case_Resolution_Notes!=null) {  lstField.add('Case_Resolution_Notes__c');  }
+if(caseWrap.filter.expField.Service_Item!=null) {  lstField.add('Service_Item__c');  }
+if(caseWrap.filter.expField.Ticket_Item2!=null) {  lstField.add('Ticket_Item2__c');  }
+if(caseWrap.filter.expField.LastModifiedDate!=null) {  lstField.add('LastModifiedDate');  }
+if(caseWrap.filter.expField.User_Type!=null) {  lstField.add('User_Type__c');  }
+if(caseWrap.filter.expField.Campus!=null) {  lstField.add('Campus__c');  }
+if(caseWrap.filter.expField.Building!=null) {  lstField.add('Building__c');  }
+if(caseWrap.filter.expField.Room_Number!=null) {  lstField.add('Room_Number__c');  }
+if(caseWrap.filter.expField.Location_captured!=null) {  lstField.add('Location_captured__c');  }
+if(caseWrap.filter.expField.Support_Type!=null) {  lstField.add('Support_Type__c');  }
+if(caseWrap.filter.expField.ParentId!=null) {  lstField.add('ParentId');  }
+if(caseWrap.filter.expField.OwnerId!=null) {  lstField.add('OwnerId');  }
+if(caseWrap.filter.expField.Area_Description!=null) {  lstField.add('Area_Description__c');  }
+if(caseWrap.filter.expField.External_Ticket_Num!=null) {  lstField.add('External_Ticket_Num__c');  }
+if(caseWrap.filter.expField.Preferred_Phone_Num!=null) {  lstField.add('Preferred_Phone_Num__c');  }
+if(caseWrap.filter.expField.Declined_Remote_Session!=null) {  lstField.add('Declined_Remote_Session__c');  }
+if(caseWrap.filter.expField.Chat_Log!=null) {  lstField.add('Chat_Log__c');  }
+if(caseWrap.filter.expField.Escalatedby_BBH!=null) {  lstField.add('Escalatedby_BBH__c');  }
+if(caseWrap.filter.expField.ContactId!=null) {  lstField.add('ContactId');  }
+if(caseWrap.filter.expField.Ticket_Classification!=null) {  lstField.add('Ticket_Classification__c');  }
+if(caseWrap.filter.expField.OldCaseOwnerC!=null) {  lstField.add('OldCaseOwnerC__c');  }
+if(caseWrap.filter.expField.Is_BBH_Case_Owner!=null){ lstField.add('Is_BBH_Case_Owner__c');}
+           
+            
+            Case newCase = new Case();
+               
+                if(String.IsNotBlank(caseWrap.filter.secondary.Id))
+                {
+                    newCase.Id = caseWrap.filter.secondary.Id;
+                }
+              newCase.AccountId = caseWrap.filter.primary.AccountId;
+            if(String.IsNotBlank(caseWrap.filter.secondary.ContactId)){
+                  newCase.ContactId = caseWrap.filter.secondary.ContactId;
+            } else {
+             
+             
+               newCase.ContactId=createTicketContact(caseWrap.filter.secondary.contact.email,caseWrap.filter.primary.AccountId,caseWrap.filter.secondary.contact.lastName,caseWrap.filter.secondary.contact.firstName,caseWrap.filter.secondary.contact.phone,caseWrap.filter.secondary.contact.studentId);
+   }
+                
+             
+                newCase.Subject = caseWrap.filter.secondary.Subject;
+                newCase.Description = caseWrap.filter.secondary.Description;
+                newCase.Status = caseWrap.filter.secondary.Status;        
+              
+                newCase.Internal_Notes__c = caseWrap.filter.secondary.Internal_Notes;
+                newCase.Case_Source__c = caseWrap.filter.secondary.Case_Source;
+                newCase.RecordTypeId = caseWrap.filter.primary.RecordTypeId;
+                newCase.Campus__c = caseWrap.filter.secondary.Campus;
+                newCase.Building__c = caseWrap.filter.secondary.Building;
+                newCase.Service_Category__c = caseWrap.filter.secondary.Service_Category;
+                newCase.Service_Type__c = caseWrap.filter.secondary.Service_Type;
+               newCase.Service_Item__c = caseWrap.filter.secondary.Service_Item;
+                newCase.User_Type__c = caseWrap.filter.secondary.User_Type;
+                newCase.Priority = caseWrap.filter.secondary.Priority;
+                newCase.Case_Resolution_Notes__c = caseWrap.filter.secondary.Case_Resolution_Notes;
+                newCase.Location_captured__c = caseWrap.filter.secondary.Location;
+                newCase.Room_Number__c =       caseWrap.filter.secondary.Room_Number;
+                newCase.Case_CC_Email__c =     caseWrap.filter.secondary.Case_CC_Email;
+                newCase.Agent_Adviser__c =    caseWrap.filter.secondary.Agent_Adviser;
+                newCase.Ticket_Category__c = caseWrap.filter.secondary.Ticket_Category;
+                newCase.Ticket_Type__c = caseWrap.filter.secondary.Ticket_Type;
+                newCase.Ticket_Item__c = caseWrap.filter.secondary.Ticket_Item;
+                newCase.Area_Description__c=caseWrap.filter.secondary.Area_Description;
+                newCase.Ticket_Classification__c=caseWrap.filter.secondary.Ticket_Classification;
+                newCase.Support_Type__c=caseWrap.filter.secondary.Support_type;
+                newCase.External_Ticket_Num__c=caseWrap.filter.secondary.External_Ticket_Num;
+                newCase.Preferred_Phone_Num__c=CaseWrap.filter.secondary.Preferred_Phone_Num;
+                // newCase.Declined_Remote_Session__c =CaseWrap.filter.secondary.Declined_Remote_Session;
+                newCase.Chat_Log__c =CaseWrap.filter.secondary.Chat_Log;
+                //newCase.Escalatedby_BBH__c =CaseWrap.filter.secondary.Escalatedby_BBH;
+                 //newCase.Repeated_Spam__c=CaseWrap.filter.secondary.Repeated_Spam;
+                newCase.ParentId=ZGlobal_ConvertCaseNumToId.convertIntoId(caseWrap.filter.secondary.ParentId);
+               
+               
+                if(String.IsNotBlank(caseWrap.filter.secondary.OwnerId))
+                {
+                    newCase.OwnerId = caseWrap.filter.secondary.OwnerId;
+                }
+               
+                newcaseList.add(newCase);
+                System.debug('caseList---'+newcaseList);
+          lstField.sort();
+          
+              for(String s:lstField)
+            {
+             s2= SelectColumn+=s+',';  
+            }
+        
+        s3=s2.removeEnd(',');
+        
+         
+        
+    
+        }
+        try{
+           
+            upsert newcaseList;
+            String CasId=newcaseList[0].id;
+            query= s3+' From Case Where Id=:CasId limit 1';
+            exceptList=database.query(query); 
+         return exceptList;
+        }
+        catch(Exception e){
+          Case cs=new Case();
+          cs.Internal_notes__c=e.getMessage();
+            exceptList.add(cs);   
+          
+            return exceptList;
+        }
+      
+      
+    }  
+    
+    
+    
+//////////////////////////////Create Internal notes/////////////////////////////
+    
+   public static List<sObject> createInternalNotes(SimplifyCaseMgt.CaseWrapper[] Records)
+    {
+       list<Exception__c> exceptList=new List<Exception__c>();
+        List<CaseInternalNotes__c> LstNotes= new List<CaseInternalNotes__c>();  
+        for(SimplifyCaseMgt.CaseWrapper caseWrap: records )
+        {
+                CaseInternalNotes__c newNotes = new CaseInternalNotes__c();
+               
+                if(String.IsNotBlank(caseWrap.filter.secondary.ParentId))
+                {
+                    newNotes.InternalCaseNotes__c = caseWrap.filter.secondary.ParentId;
+                }
+                System.debug('caseWrap.InternalNotes---'+caseWrap.filter.secondary.Internal_Notes);
+               
+              
+                newNotes.Note__c = caseWrap.filter.secondary.Internal_Notes;         
+                LstNotes.add(newNotes);
+                System.debug('caseList---'+LstNotes);
+        }
+        try{
+           
+            upsert LstNotes;
+           
+            for(sObject Notes :LstNotes)
+            {
+                Exception__c excpt=new Exception__c();
+                excpt.Record_ID__c=Notes.id;
+                excpt.Object__c='Intenal Notes';
+                excpt.Automation_Tool__c='Apex';
+                             
+                exceptList.add(excpt);
+            }
+            
+ 
+          
+         return exceptList;
+        }
+        catch(Exception e){
+                 Exception__c excpt=new Exception__c();
+                excpt.Exception_details__c=e.getMessage(); 
+                excpt.Object__c='Intenal Notes';
+                excpt.Automation_Tool__c='Apex';
+                exceptList.add(excpt);
+          
+            return exceptList;
+        }
+      
+      
+    }
+     
+     
+    ///////////////////////////Create CaseComment////////////////////////////////////////
+    
+     public static List<sObject> CreateCaseComment(SimplifyCaseMgt.CaseWrapper[] Records)
+    {
+        list<Exception__c> exceptList=new List<Exception__c>();
+        List<CaseComment> LstCaseComment= new List<CaseComment>();  
+        for(SimplifyCaseMgt.CaseWrapper caseWrap: records )
+        {
+                CaseComment CaseComments = new CaseComment();
+               
+                System.debug('caseWrap.CommentBody---'+caseWrap.filter.secondary.CommentBody);
+               
+                CaseComments.ParentId = caseWrap.filter.secondary.ParentId;
+                CaseComments.CommentBody = caseWrap.filter.secondary.CommentBody;                    
+            
+               
+                LstCaseComment.add(CaseComments);
+                System.debug('caseList---'+LstCaseComment);
+        }
+        try{
+           
+            Insert LstCaseComment;
+         for(sObject cmt :LstCaseComment)
+            {
+                Exception__c excpt=new Exception__c();
+                excpt.Record_ID__c=cmt.id;
+                excpt.Object__c='CaseComment';
+                excpt.Automation_Tool__c='Apex';
+                             
+                exceptList.add(excpt);
+            }
+            
+ 
+          
+         return exceptList;
+        }
+        catch(Exception e){
+                 Exception__c excpt=new Exception__c();
+                excpt.Exception_details__c=e.getMessage(); 
+                excpt.Object__c='CaseComment';
+                excpt.Automation_Tool__c='Apex';
+                exceptList.add(excpt);
+          
+            return exceptList;
+        }
+      
+      
+    }
+    
+    
+       
+   
+  ////////////////////////////////////Search Contacts///////////////////////////////
+ 
+    Public Static List<Contact> SearchContacts(SimplifyCaseMgt.CaseWrapper[] Records)
+    {
+        List<Contact> lstRecords;
+        String SelectColoumn='Select id,Email,School_Username__c,FirstName,LastName,School_Id_Number__c,phone,User_Type__c from Contact where ';
+         String col0,col1,col2,col3,col4,col5,Col_V0,Col_V1,Col_V2,Col_V3,Col_V4,Col_V5;
+        List<Contact> ContactList = new List<Contact>();
+        List<String>lstField=new List<String>();
+        List<String>lstValue=new List<String>();
+         for(SimplifyCaseMgt.CaseWrapper caseWrap: records )
+        {
+                
+ if(caseWrap.filter.primary.AccountId!=null)
+{   lstField.add('AccountId');  
+    lstValue.add(caseWrap.filter.primary.AccountId);}            
+      
+  if(caseWrap.filter.secondary.FirstName!=null)
+ {  lstField.add('FirstName');  
+    lstValue.add(caseWrap.filter.secondary.FirstName);}
+            
+ if(caseWrap.filter.secondary.LastName!=null)
+{  lstField.add('LastName');  
+    lstValue.add(caseWrap.filter.secondary.LastName);}
+            
+ if(caseWrap.filter.secondary.Email!=null)
+{   lstField.add('Email');  
+    lstValue.add(caseWrap.filter.secondary.Email);}
+            
+if(caseWrap.filter.secondary.Id!=null)
+ {  lstField.add('Id');  
+    lstValue.add(caseWrap.filter.secondary.Id);}
+   
+  if(caseWrap.filter.secondary.StudentId!=null)
+ {  lstField.add('School_ID_Number__c');  
+    lstValue.add(caseWrap.filter.secondary.StudentId);}  
+            
+             if(lstField.size()>2)
+             {
+               Col0=lstField[0];
+               Col1= lstField[1];
+               Col2=lstField[2];  
+               Col_V0=lstValue[0];
+               Col_V1=lstValue[1];
+               Col_V2=lstValue[2];
+               
+     String query= SelectColoumn+col0+'=:Col_V0 AND '+col1+'=:Col_V1 AND '+col2+'=:Col_V2'; 
+           
+   lstRecords = database.query(query);
+             }
+            
+            if(lstField.size()>1)
+             {
+               Col0=lstField[0];
+               Col1= lstField[1];
+                
+               Col_V0=lstValue[0];
+               Col_V1=lstValue[1];
+              
+               
+     String query= SelectColoumn+col0+'=:Col_V0 AND '+col1+'=:Col_V1'; 
+           
+   lstRecords = database.query(query);
+             }
+            else {
+                
+               Col0=lstField[0];               
+               Col_V0=lstValue[0];           
+               
+      String query= SelectColoumn+col0+'=:Col_V0';          
+      lstRecords = database.query(query);
+             }
+            
+            
+             for(Contact cs :lstRecords)
+        {
+            ContactList.add(cs);
+        }
+        
+    }
+        return ContactList; 
+    }
+    
+ /////////////////////////////////////Search Ticket Method /////////////////////////////            
+public Static List<Case> searchTickets(SimplifyCaseMgt.CaseWrapper[] Records)
+ {
+         String col0,col1,col2,col3,col4,col5,Col_V0,Col_V1,Col_V2,Col_V3,Col_V4,Col_V5;
+        List<Case> caseList = new List<Case>();
+        List<String>lstField=new List<String>();
+        List<String>lstValue=new List<String>();
+        List<Case>getListCase= new List<Case>();
+        for(SimplifyCaseMgt.CaseWrapper caseWrap: records )
+        {
+     
+     String selectField='SELECT Id, ParentId,CaseNumber, Subject, Status, OwnerId,  AccountId, ContactId, Description,Agent_Adviser__c, Case_CC_Email__c, Internal_Notes__c, Case_Source__c, RecordTypeId, Building__c, Room_Number__c, Service_Category__c, Service_Type__c, Location_captured__c, Campus__c, Service_Item__c, User_Type__c,Priority,Case_Resolution_Notes__c, Ticket_Category__c, Ticket_Type__c, Ticket_Item__c,ParentCaseNumberIAD__c,Support_Type__c,LastModifiedDate,OldCaseOwnerR__c,CreatedDate FROM Case WHERE ';
+ if(caseWrap.filter.secondary.Status!=null)
+{   lstField.add('Status');  
+    lstValue.add(caseWrap.filter.secondary.Status);
+ system.debug('Status'+lstValue);
+}            
+          
+ if(caseWrap.filter.secondary.ContactId!=null)
+{  lstField.add('ContactId');  
+    lstValue.add(caseWrap.filter.secondary.ContactId);}
+            
+ if(caseWrap.filter.secondary.OwnerId!=null)
+{   lstField.add('OwnerId');  
+    lstValue.add(caseWrap.filter.secondary.OwnerId);}
+            
+if(caseWrap.filter.secondary.CaseNumber!=null)
+ {  lstField.add('CaseNumber');  
+    lstValue.add(caseWrap.filter.secondary.CaseNumber);}
+            if(caseWrap.filter.primary.AccountId!=null)
+ {  lstField.add('AccountId');  
+    lstValue.add(caseWrap.filter.primary.AccountId);}
+            if(caseWrap.filter.primary.RecordTypeId!=null)
+ {  lstField.add('RecordTypeId');  
+    lstValue.add(caseWrap.filter.primary.RecordTypeId);}
+            
+            
+            
+            integer n=lstField.size();
+            integer m=n-1;
+         
+                
+            if(lstField.size()>5){
+                 col0=lstField[0];
+             col1=lstField[1];
+             col2=lstField[2];
+             col3=lstField[3];
+                 col4=lstField[4];
+                 col5=lstField[5];
+             Col_V0=lstValue[0];
+             Col_V1=lstValue[1];
+             Col_V2=lstValue[2];
+             Col_V3=lstValue[3];
+                Col_V4=lstValue[4];
+                Col_V5=lstValue[5];
+   String fields= selectField+col0+'=:Col_V0 AND '+col1+'=:Col_V1 AND '+col2+'=:Col_V2 AND '+col3+'=:Col_V3 AND '+col4+'=:Col_V4 AND '+col5+'=:Col_V5'; 
+             getListCase = database.query(fields);   
+            }
+           else if(lstField.size()>4){
+                col0=lstField[0];
+             col1=lstField[1];
+             col2=lstField[2];
+             col3=lstField[3];
+               col4=lstField[4];
+               
+             Col_V0=lstValue[0];
+             Col_V1=lstValue[1];
+             Col_V2=lstValue[2];
+             Col_V3=lstValue[3];
+               Col_V4=lstValue[4];
+           String fields= selectField+col0+'=:Col_V0 AND '+col1+'=:Col_V1 AND '+col2+'=:Col_V2 AND '+col3+'=:Col_V3 AND '+col4+'=:Col_V4';
+             getListCase = database.query(fields);   
+            }
+            
+            else if(lstField.size()>3)
+            {
+              
+             col0=lstField[0];
+             col1=lstField[1];
+             col2=lstField[2];
+             col3=lstField[3];
+             Col_V0=lstValue[0];
+             Col_V1=lstValue[1];
+             Col_V2=lstValue[2];
+             Col_V3=lstValue[3];
+               
+     String fields= selectField+col0+'=:Col_V0 AND '+col1+'=:Col_V1 AND '+col2+'=:Col_V2 AND '+col3+'=:Col_V3'; 
+           
+   getListCase = database.query(fields);
+            }  
+           else if(lstField.size()>2)
+            {
+              
+             col0=lstField[0];
+             col1=lstField[1];
+             col2=lstField[2];
+                
+             Col_V0=lstValue[0];
+             Col_V1=lstValue[1];
+             Col_V2=lstValue[2];
+               
+     String fields= selectField+col0+'=:Col_V0 AND '+col1+'=:Col_V1 AND '+col2+'=:Col_V2'; 
+           
+   getListCase = database.query(fields);
+            }  
+            
+        else if(lstField.size()>1)
+            {
+              col0=lstField[0];
+             col1=lstField[1];
+           
+                
+             Col_V0=lstValue[0];
+             Col_V1=lstValue[1];
+            
+               
+     String fields= selectField+col0+'=:Col_V0 AND '+col1+'=:Col_V1'; 
+           
+   getListCase = database.query(fields);
+            
+            }
+            else{
+                
+                col0=lstField[0]; 
+                Col_V0=lstValue[0];
+              String  fields= selectField+col0+'=:Col_V0'; 
+           
+   getListCase = database.query(fields);
+            }
+          
+        for(Case cs :getListCase)
+        {
+            caseList.add(cs);
+        }
+           
+        
+           
+            }
+        return caseList;
+ }
+
+  
+    
+   
+
+    ///////////////////////////Search CaseComment////////////////////////////////////////
+    
+     public static List<caseComment> searchCaseComment(SimplifyCaseMgt.CaseWrapper[] Records)
+    {
+       String  PartId= '';
+        List<CaseComment> LstCaseComment= new List<CaseComment>(); 
+         List<CaseComment> getLstCaseComment= new List<CaseComment>();
+        for(SimplifyCaseMgt.CaseWrapper caseWrap: records )
+        {
+             String selectField='select id ,CommentBody,CreatedById,CreatedDate,IsPublished,LastModifiedDate, parentId from caseComment where ParentId=:';        
+            if(String.IsNotBlank(caseWrap.filter.secondary.CaseNumber))
+            {
+             PartId= getCasId(caseWrap.filter.secondary.CaseNumber);  
+            }
+           String query=selectField+'PartId';
+            
+          LstCaseComment=database.query(query);
+               
+        }
+        
+        for(CaseComment cmt:LstCaseComment)
+        {
+            getLstCaseComment.add(cmt);
+        }
+        
+        return getLstCaseComment;
+      
+    }
+    
+    //////////////////////////Search InternalNotes//////////////////////////////////////
+     
+    Public static List<CaseInternalNotes__c> SearhInternalNotes(SimplifyCaseMgt.CaseWrapper[] Records)
+    {  String PartId='';
+     String SelectColoumn ='Select id,CreatedById,CreatedDate,Note__c from CaseInternalNotes__c where InternalCaseNotes__c=:';
+         List<CaseInternalNotes__c> LstNotes= new List<CaseInternalNotes__c>(); 
+        List<CaseInternalNotes__c> getLstNotes= new List<CaseInternalNotes__c>(); 
+        for(SimplifyCaseMgt.CaseWrapper caseWrap:Records)
+        {
+         if(String.IsNotBlank( getCasId(caseWrap.filter.secondary.CaseNumber)))
+            {
+             PartId= getCasId(caseWrap.filter.secondary.CaseNumber);   
+        }
+            String query=SelectColoumn+'PartId';
+           LstNotes=database.query(query); 
+        }
+     for(CaseInternalNotes__c cIN:LstNotes)
+     {
+       getLstNotes.add(cIN);  
+     }
+        return getLstNotes;
+    } 
+
+
+/* this method create contact with help of passing  parameters. And it return contact Id*/
+////////////////////////////////Create Contact ////////////////////////////
+    public Static String createTicketContact(String email,String accId,string lastName,string firstName,string phone,string studentId)
+    {    
+      String ConId;
+        List<Contact> lstContact=[select id,AccountId from contact where email=:email and AccountId=:accId];
+        if(lstContact.size()>0){            
+            
+            ConId=lstContact[0].id;
+        system.debug('ContactId'+ConId);
+        }else {
+            Contact newContact=new Contact();
+            newContact.AccountId=accId;
+            newContact.lastname=lastName;
+            newContact.email=email;
+            newContact.FirstName=firstName;
+            newContact.Phone=phone;
+           newContact.Student_ID_Number__c=studentId;
+          insert newContact;
+          ConId=newContact.id;
+       
+    }
+    return ConId;    
+}
+    /*this method Get case Ids from case Number*/
+public static string getCasId(String caseNumber)
+{
+    string CaseId;
+    List<case> lstCase=[select id from case where CaseNumber=:caseNumber];
+    if(string.isNotBlank(lstCase[0].id)){
+       CaseId=lstcase[0].id; 
+    }
+    return CaseId;
+    
+}
+}
