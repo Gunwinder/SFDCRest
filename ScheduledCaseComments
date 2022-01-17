@@ -1,0 +1,65 @@
+trigger ScheduledCaseComments on Case (after insert,after update) {
+
+   // LIST <caseComment> caseCommentLst = new LIST<caseComment>();
+    for (case c:trigger.new){
+        
+        
+        If(c.Status!='Closed Successful (Closed)' || c.status!='Closed UnSuccessful (Closed)')
+        {            
+        	if (c.Scheduled_Closures__c=='24 hours ACR' && c.Scheduled_Closures__c!='Reset - Customer responded'){
+                caseComment cc = new caseComment();   
+            	cc.parentid = c.ID;
+            	cc.ispublished=true;
+            	cc.CommentBody='24 ACR Comment';
+				//caseCommentLst.add(cc); 
+                insert cc;    
+				break;	
+        	}
+        	else if (c.Scheduled_Closures__c=='48 hours ACR' && c.Scheduled_Closures__c!='Reset - Customer responded'){
+                caseComment cc = new caseComment(); 
+            	cc.parentid = c.ID;
+            	cc.ispublished=true;
+            	cc.CommentBody='48 ACR Comment'; 
+            	//caseCommentLst.add(cc); 
+                insert cc;
+        	}
+        	else if (c.Scheduled_Closures__c=='72 hours ACR' && c.Scheduled_Closures__c!='Reset - Customer responded'){
+                caseComment cc = new caseComment();
+            	cc.parentid = c.ID;
+            	cc.ispublished=true;
+            	cc.CommentBody='72 ACR Comment';
+				//caseCommentLst.add(cc);  
+                insert cc;
+        	}
+    	} 
+    }   
+    
+}
+
+
+
+====================Email loop protection =======================
+
+trigger Global_EmailCaseCommentLoopProtection on CaseComment (before insert) {
+    
+    Set<Id> parentCase=new Set<Id>();
+    Map<Id,Case> mapCase=new Map<Id,Case>();
+    
+    for (CaseComment t: Trigger.new) {
+        parentCase.add(t.ParentId);
+    }
+    
+    
+    List<caseComment> lstComment=[Select Id,CommentBody,createddate from caseComment where ParentId in:parentCase order by CreatedDate DESC];
+    
+       for (CaseComment t: Trigger.new) {
+        	if(userinfo.getName()=='Automated Workflow'){
+            	if(lstComment.size()>2) 
+            	{             
+                	if(t.CommentBody==lstComment[0].CommentBody){
+                    	t.adderror('Automatic email loop has been terminated');                    
+                	}                
+            	}      
+			}
+     }
+}
