@@ -1,0 +1,232 @@
+/**
+    RestContext Class to Create/Update Case
+   
+   This is used for global project task
+    @author
+    @copyright
+*/
+
+
+1. This is the main class which invokes  AllOperationClassSimple.
+2. AllOperationClassSimple, facilitates creation / update / search of Ticket , Case comment and contacts. 
+- SOQL query is build based on the typical fields which are consumed by the Simiplify product by product team. 
+- If a new parameter / field needs to be added. Refer to the section at the bottom of this class for WRAPPER defination. 
+
+
+@RestResource(urlMapping='/SimplifyCaseMgt/*')
+global with sharing class SimplifyCaseMgt {
+
+    @HttpGet
+    global static List<Case> doGet() {
+   
+        Id recordId = RestContext.request.params.get('Id');
+        
+       
+       
+        
+     List<Case> cases=   [SELECT Id, ParentId,CaseNumber, Subject, Status, OwnerId,  AccountId, ContactId, Description,
+                             Agent_Adviser__c, Case_CC_Email__c, Internal_Notes__c, Case_Source__c, RecordTypeId, Building__c, Room_Number__c, Service_Category__c, Service_Type__c, Location_captured__c, Campus__c, Service_Item__c, User_Type__c,Priority,Case_Resolution_Notes__c, Ticket_Category__c, Ticket_Type__c, Ticket_Item__c,ParentCaseNumberIAD__c,Support_Type__c,LastModifiedDate,OldCaseOwnerR__c,CreatedDate
+                            FROM Case where Id=:recordId];
+        return cases;
+    }
+ 
+    @HttpPost
+    global static List<sObject> doPost() {
+    list<sObject> lstRecords;
+       
+        RestRequest req = RestContext.request;
+
+        SimplifyCaseMgt.CaseWrapper[] records = (SimplifyCaseMgt.CaseWrapper[])JSON.deserialize(req.requestBody.tostring (), List<SimplifyCaseMgt.CaseWrapper>.class);
+       List<String> LstTypes =new List<String>();
+        List<Case> caseList = new List<Case>();
+        List<String>lstField=new List<String>();
+        List<String>lstValue=new List<String>();
+        List<Case>getListCase= new List<Case>();
+        String selectColumn='SELECT Id, ParentId,CaseNumber, Subject, Status, OwnerId,  AccountId, ContactId, Description,Agent_Adviser__c, Case_CC_Email__c, Internal_Notes__c, Case_Source__c, RecordTypeId, Building__c, Room_Number__c, Service_Category__c, Service_Type__c, Location_captured__c, Campus__c, Service_Item__c, User_Type__c,Priority,Case_Resolution_Notes__c, Ticket_Category__c, Ticket_Type__c, Ticket_Item__c,ParentCaseNumberIAD__c,Support_Type__c,LastModifiedDate,OldCaseOwnerR__c,CreatedDate FROM Case WHERE ';
+         String query;
+        for(SimplifyCaseMgt.CaseWrapper caseWrap: records )
+        {
+    
+           
+           if(caseWrap.Types!=null)
+                {   
+                   LstTypes.add(caseWrap.Types);}
+            
+                     if(LstTypes.size()>0 ){
+                         if(LstTypes[0]=='Create Ticket'){
+                    //Execute Create method
+            	lstRecords=AllOperationClassSimple.createTicket(Records);
+                }
+                else if(LstTypes[0]=='Search Ticket'){
+                   lstRecords= AllOperationClassSimple.searchTickets(Records);      
+ 
+                }
+                else if(LstTypes[0]=='Search Contact'){
+                  lstRecords=AllOperationClassSimple.SearchContacts(Records);     
+ 
+                }
+                else if(LstTypes[0]=='Create Contact'){
+                   lstRecords=AllOperationClassSimple.createNewContact(Records);   
+ 
+                }
+                else if(LstTypes[0]=='Create CaseComment'){
+                  lstRecords= AllOperationClassSimple.CreateCaseComment(Records);       
+ 
+                }
+               
+                
+                else if(LstTypes[0]=='Search CaseComment'){
+               lstRecords = AllOperationClassSimple.searchCaseComment(Records);
+                }
+                
+                else if(LstTypes[0]=='Create CaseInternalNotes'){
+                          
+                  lstRecords=AllOperationClassSimple.createInternalNotes(Records);
+                }
+                 else if(LstTypes[0]=='Search CaseInternalNotes'){
+                  lstRecords=AllOperationClassSimple.SearhInternalNotes(Records);    
+ 
+                }
+                
+              
+            }
+           
+           
+            }
+        return lstRecords; 
+      
+        
+    }
+   public  class CaseWrapper {
+   public Filter filter; 
+   public String types;     
+    }
+	public class Filter {
+		public Primary primary;
+		public Secondary secondary;
+        public expectedResponse expField;
+	}
+
+	public class Primary {
+		public String AccountId;
+		public String RecordTypeId;
+		
+	} 
+    public class Cont_obj{
+        public string firstName ;
+        Public String LastName;
+        Public String StudentId;
+        Public String Email;
+        public String Phone;
+        
+    }
+	public class Secondary {
+        public String CaseNumber;
+		public String ContactId;
+        public String Status; 
+		public String OwnerId;
+        public Cont_obj contact ;
+        public String Id; 
+        public String Subject;
+        public String Description;
+        public String Internal_Notes;
+        public String Case_Source;
+        public String RecordTypeId;
+        public String Building;
+        public String Campus;
+        public String Service_Category;
+        public String Service_Type;
+        public String Service_Item;
+        public String User_Type;
+        public String Priority;
+        public String Case_Resolution_Notes;
+        public String Location;
+        public String Room_Number;
+        public String Case_CC_Email;
+        public String Agent_Adviser;
+        public String Ticket_Category;
+        public String Ticket_Type;
+        public String Ticket_Item;
+        public String ParentId;
+        public String CommentBody;
+        public String OwnerName;
+        Public String Types;
+        public string firstName ;
+        Public String LastName;
+        Public String StudentId;
+        Public String Email;
+        public String Phone;
+        public string Area_Description;
+        public string Ticket_Classification;
+        public String Support_Type;        
+        public string External_Ticket_Num ;
+		public string Preferred_Phone_Num;
+        public boolean Declined_Remote_Session;
+	   	public string Chat_Log;
+		public boolean Escalatedby_BBH;
+		public boolean Repeated_Spam; 
+		// add addtional , ignore __c 
+        
+        
+		}
+    
+    public class expectedResponse {
+        public String AccountId;
+		public String CaseNumber; 
+		public String ContactId; 
+        public String Status; 
+		public String OwnerId;
+        public Cont_obj contact ;
+        public String Id; 
+        public String Subject;
+        public String Description;
+        public String Internal_Notes;
+        public String Case_Source;
+        public String RecordTypeId;
+        public String Building;
+        public String Campus;
+        public String Service_Category;
+        public String Service_Type;
+        public String Service_Item;
+        public String User_Type;
+        public String Priority;
+        public String Case_Resolution_Notes;
+        public String Location;
+        public String Room_Number;
+        public String Case_CC_Email;
+        public String Agent_Adviser;
+        public String Ticket_Category;
+        public String Ticket_Type;
+        public String Ticket_Item;
+        public String ParentId;
+        public String CommentBody;
+        public String OwnerName;
+        Public String Types;
+        public string firstName ;
+        Public String LastName;
+        Public String School_ID_Number;
+        Public String Email;
+        public String Phone;
+        public string Area_Description;
+        public string Ticket_Classification;
+        public String Support_Type;
+        public String CreatedDate;
+        public String ClosedDate;
+        public String Ticket_Type2;
+        public String  OldCaseOwnerR;
+        public String Ticket_Category2;
+        public String Ticket_Item2;
+        public String LastModifiedDate;
+        public String Location_captured;
+        public String External_Ticket_Num;
+        public String Preferred_Phone_Num;
+        public String Declined_Remote_Session;
+        public String Chat_log;
+        public String Escalatedby_BBH;
+        public String OldCaseOwnerC;
+        public String Is_BBH_Case_Owner;
+		}
+	
+
+	
+	}
