@@ -1,0 +1,38 @@
+@RestResource(urlMapping='/CreateContact/')
+global class RestCreateContact {
+@HTTPPost  // if you miss this you will get the error on Workbench / postman
+    global static string CreateContact(){
+    // variables to be consumed later
+    
+    string lastname, email,fieldName,fieldValue;
+    // create request and response variables
+    RestResponse res = RestContext.response;
+    RestRequest req = RestContext.request;    
+    
+    // convert req to string
+    string arr = req.requestBody.toString();
+    system.debug('REST Body :'+arr);
+        
+    string jsonBody =   req.requestBody.toString();
+    // pass jsonBody to APEX parser
+    JSONParser parser = JSON.CreateParser(jsonBody);
+    
+    // loop over till the time End_OBJECT Token is reached.
+        while (parser.nextToken()!=NULL){
+            if(parser.getCurrentToken()!= JSONToken.END_OBJECT){
+                fieldName = parser.getCurrentName();
+                fieldValue = parser.getText();
+                
+                if (fieldName == 'LastName'){
+                    lastname= fieldValue;
+                }
+                else if (fieldName == 'email'){
+                    email = fieldValue;
+                }
+            }
+        }
+    contact c = new contact(lastname = lastname, email=email);     
+    return 'test passed';
+    }
+    
+}
