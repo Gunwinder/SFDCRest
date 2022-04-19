@@ -1,0 +1,33 @@
+@restresource(urlmapping='/v1/AccountManagerPATCH/*')
+global class REST_AccountManagerPATCH {
+
+    @httpPATCH
+    global static responseWrapper UpdateAccount(string rating,string accnumber, string description){
+        restrequest request = RestContext.request;
+        string requestURI = request.requestURI;
+        string accountId = requestURI.subStringAfterLast('/');
+        // Fetch the account record to prevent APEX Error = sObject has no row assignment.
+        list<account> accList =[SELECT Id FROM Account WHERE Id =:accountId];
+        // dummy account
+        Account accRecord;	
+        responseWrapper wrapperobj = new responseWrapper(); // create instance of wrapper class
+        
+        // null check 
+        if (accList.size() >0 || accList!=null){
+        	// prepare the account record        
+            accRecord = new account (id= accountId, rating =rating, accountNumber= accnumber, description = description);
+            update accRecord;
+            wrapperobj.accRecord = accRecord;  
+            wrapperobj.operationMessage= 'Account record updated';
+        }else{
+           wrapperobj.operationMessage= 'Account record not found !'; 
+        }
+       // return accRecord;
+        return wrapperobj; 
+    }
+    
+    global class responseWrapper{
+        global account accRecord;
+        global string operationMessage;
+    }
+}
