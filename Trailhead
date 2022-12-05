@@ -1,0 +1,56 @@
+// https://trailhead.salesforce.com/content/learn/modules/apex_integration_services/apex_integration_webservices?trail_id=force_com_dev_intermediate
+@RestResource(urlMapping='/Accounts/*/contacts')
+
+global with sharing class AccountManager {
+    
+    //get accounts 
+    @httpGet
+    
+    global static account getAccount(){ // returns a single account and its related contacts per SOQL 
+         RestRequest request = RestContext.request;
+       // String accountId = request.requestURI.substring(request.requestURI.lastIndexOf('/')+1);
+       // expected /Accounts/<Account_ID>/contacts ,, here the accountId is between two so will use substringBetween string function.
+       
+       string accountId = request.requestURI.substringBetween('/Accounts/','/contacts');
+        account result =  [SELECT Id,Name,(SELECT Id, FirstName, LastName from CONTACTS) FROM Account WHERE Id = :accountId];
+        return result;
+    }
+
+}
+
+// --- TEST CLASS -------
+@isTest
+public class AccountManagerTest {
+// create dummy data : account and contact
+@isTest
+    static void populateData(){
+        account ac = new account();
+    	ac.name='Test Account';
+    	insert ac;
+    
+	contact con = new contact();
+    	con.lastName = 'singh';
+    	con.Email='goolied@mgmail.com';
+    	con.AccountId=ac.id;
+    	insert con;
+    
+    // generate the URI expected 
+    // <baseURL>+/apexrest/<classname>+/Accounts/*/contacts make sure not to confuse with ClassName as test Method already know which class it is testing for 
+    // ex:     string URI = 'https://creative-badger-cj8ief-dev-ed.trailblaze.my.salesforce.com/services/apexrest/AccountManager/'+ac.id+'/contacts';
+
+    string URI = 'https://creative-badger-cj8ief-dev-ed.trailblaze.my.salesforce.com/services/apexrest/Accounts/'+ac.id+'/contacts';
+    RestRequest req = new RestRequest();
+    
+        req.requestURI=URI;
+        req.httpMethod ='GET';
+        RestContext.request=req;
+        
+        // validate assertion
+        
+        account myAccount = AccountManager.getAccount();
+        system.Assert(myAccount!=NULL); // check for account is not NULL
+		system.assertEquals('Test Account', myAccount.Name);
+    
+    }
+    
+}
